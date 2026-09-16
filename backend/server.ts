@@ -1,6 +1,7 @@
-const { setupWSConnection } = require('y-websocket/bin/utils')
-const { WebSocketServer } = require('ws')
-const http = require('http')
+// @ts-ignore
+import { setupWSConnection } from 'y-websocket/bin/utils'
+import { WebSocketServer } from 'ws'
+import http from 'http'
 
 const port = process.env.PORT || 1234
 
@@ -11,7 +12,7 @@ const server = http.createServer((request, response) => {
 
 const wss = new WebSocketServer({ server })
 
-wss.on('connection', (conn, req) => {
+wss.on('connection', (conn: any, req: any) => {
   console.log('🔌 Novo cliente conectado!')
   setupWSConnection(conn, req, { gc: true })
 })
