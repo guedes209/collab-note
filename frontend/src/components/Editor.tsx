@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Collaboration from '@tiptap/extension-collaboration'
@@ -11,34 +12,65 @@ const colors = ['#f783ac', '#8ce99a', '#74c0fc', '#ffa94d', '#d0bfff']
 const names = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve']
 
 export function Editor() {
+  const { roomId } = useParams<{ roomId: string }>()
+  const [yState, setYState] = useState<{
+    doc: Y.Doc,
+    idbProvider: IndexeddbPersistence,
+    wsProvider: WebsocketProvider
+  } | null>(null)
+
+  useEffect(() => {
+    if (!roomId) return
+
+    const doc = new Y.Doc()
+    const idbProvider = new IndexeddbPersistence(`collab-note-doc-${roomId}`, doc)
+    const wsProvider = new WebsocketProvider('ws://localhost:1234', `collab-note-doc-${roomId}`, doc)
+    
+    // eslint-disable-next-line
+    setYState({ doc, idbProvider, wsProvider })
+
+    return () => {
+      idbProvider.destroy()
+      wsProvider.destroy()
+      doc.destroy()
+      setYState(null)
+    }
+  }, [roomId])
+
+  if (!yState || !roomId) {
+    return (
+      <div className="w-full max-w-4xl mx-auto p-4 text-center">
+        Carregando sala {roomId}...
+      </div>
+    )
+  }
+
+  return <EditorRoom roomId={roomId} yState={yState} />
+}
+
+function EditorRoom({ roomId, yState }: { roomId: string, yState: { doc: Y.Doc, idbProvider: IndexeddbPersistence, wsProvider: WebsocketProvider } }) {
   const [localStatus, setLocalStatus] = useState('conectando DB...')
   const [networkStatus, setNetworkStatus] = useState('conectando WS...')
   
-  // Random user info initialized safely
   const [user] = useState(() => ({
     name: names[Math.floor(Math.random() * names.length)],
     color: colors[Math.floor(Math.random() * colors.length)]
   }))
 
-  // Create doc and provider only once
-  const [doc] = useState(() => new Y.Doc())
-  const [idbProvider] = useState(() => new IndexeddbPersistence('collab-note-doc', doc))
-  const [wsProvider] = useState(() => new WebsocketProvider('ws://localhost:1234', 'collab-note-doc', doc))
-
   useEffect(() => {
-    idbProvider.on('synced', () => {
-      setLocalStatus('Carregado (IndexedDB)')
-    })
-
-    wsProvider.on('status', (event: { status: string }) => {
+    const handleSynced = () => setLocalStatus('Carregado (IndexedDB)')
+    const handleStatus = (event: { status: string }) => {
       setNetworkStatus(event.status === 'connected' ? 'Online' : 'Offline')
-    })
+    }
+
+    yState.idbProvider.on('synced', handleSynced)
+    yState.wsProvider.on('status', handleStatus)
 
     return () => {
-      // Evitamos destroy() no modo de dev do React Strict Mode para não perder o doc
-      // Na produção seria seguro destruir ao desmontar
+      yState.idbProvider.off('synced', handleSynced)
+      yState.wsProvider.off('status', handleStatus)
     }
-  }, [idbProvider, wsProvider])
+  }, [yState])
 
   const editor = useEditor({
     extensions: [
@@ -46,10 +78,10 @@ export function Editor() {
         history: false, 
       }),
       Collaboration.configure({
-        document: doc,
+        document: yState.doc,
       }),
       CollaborationCursor.configure({
-        provider: wsProvider,
+        provider: yState.wsProvider,
         user: user,
       })
     ],
@@ -61,13 +93,13 @@ export function Editor() {
   })
 
   if (!editor) {
-    return <div>Carregando editor...</div>
+    return null
   }
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col gap-4">
       <div className="flex justify-between items-center bg-gray-100 p-3 rounded-md">
-        <span className="text-sm font-semibold text-gray-700">Status Local: <span className="text-gray-500 font-normal">{localStatus}</span></span>
+        <span className="text-sm font-semibold text-gray-700">Sala: <span className="text-gray-500 font-normal">{roomId.substring(0, 8)}...</span> | DB: <span className="text-gray-500 font-normal">{localStatus}</span></span>
         <span className={`text-xs px-2 py-1 rounded-full font-medium ${networkStatus === 'Online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           WS: {networkStatus}
         </span>
