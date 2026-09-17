@@ -11,6 +11,6 @@
 - [x] Tarefa 2.4: Ativar o `y-indexeddb` no `Y.Doc` para gravar as mudanças no navegador e comprovar persistência no refresh (F5).
 
 ## Fase 3: Sincronização Real-time e Awareness
-- [ ] Tarefa 3.1: Ativar a conexão via WebSocket usando o `y-websocket` no frontend, conectando ao relay local.
-- [ ] Tarefa 3.2: Implementar módulo de Awareness (cursores remotos coloridos e tags com os nomes dos usuários) usando `@tiptap/extension-collaboration-cursor`.
-- [ ] Tarefa 3.3: Adicionar indicador visual de status de rede (Online/Offline) no cabeçalho do App.
+- [x] Tarefa 3.1: Ativar a conexão via WebSocket usando o `y-websocket` no frontend, conectando ao relay local.
+- [x] Tarefa 3.2: Implementar módulo de Awareness (cursores remotos coloridos e tags com os nomes dos usuários) usando `@tiptap/extension-collaboration-cursor`.
+- [x] Tarefa 3.3: Adicionar indicador visual de status de rede (Online/Offline) no cabeçalho do App.
