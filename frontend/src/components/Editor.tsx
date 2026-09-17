@@ -43,7 +43,7 @@ export function Editor() {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        undoRedo: false, 
+        history: false, 
       }),
       Collaboration.configure({
         document: doc,
