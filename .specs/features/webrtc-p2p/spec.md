@@ -15,3 +15,4 @@ Descentralizar a infraestrutura de sincronização substituindo o fluxo de dados
 - Frontend: Substituição do import `y-websocket` por `y-webrtc` no `Editor.tsx`.
 - Signaling: Vamos utilizar a funcionalidade *signaling* out-of-the-box (padrão) do pacote `y-webrtc`.
 - Awarenes: Continuará sendo injetado no Tiptap da mesma forma (o protocolo de awareness do Yjs é agnóstico ao provedor de rede).
+
